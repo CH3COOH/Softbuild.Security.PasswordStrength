@@ -5,9 +5,9 @@ namespace Softbuild.Security
 {
     public class PasswordStrength
     {
-        private string password { get; set; }
+        public string Password { get; set; }
 
-        private double validComplexity { get; set; }
+        public float ValidComplexity { get; set; }
 
         public PasswordStrength()
             : this (null)
@@ -16,7 +16,7 @@ namespace Softbuild.Security
 
         public PasswordStrength(string password)
         {
-            this.password = password;
+            this.Password = password;
         }
 
         static public PasswordStrengthResult Validate(string password, float minimusComplexity = 0.0f)
@@ -24,7 +24,7 @@ namespace Softbuild.Security
             var strength = new PasswordStrength(password);
             if (minimusComplexity > 0.0f)
             {
-                strength.validComplexity = minimusComplexity;
+                strength.ValidComplexity = minimusComplexity;
             }
             return strength.Validate();
         }
@@ -32,12 +32,12 @@ namespace Softbuild.Security
         public PasswordStrengthResult Validate()
         {
             var result = new PasswordStrengthResult();
-            if (string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(Password))
             {
                 return result;
             }
 
-            result.Complexity += password.ToCharArray().Distinct().Count() / 10.0f;
+            result.Complexity += Password.ToCharArray().Distinct().Count() / 10.0f;
 
             var charsetsArray = new[] {
                 new {Min = Convert.ToChar(0x0030), Max = Convert.ToChar(0x0039) }, // Numbers
@@ -51,16 +51,16 @@ namespace Softbuild.Security
             result.Complexity += charsetsArray.Select(e => AdditionalComplexity(e.Min, e.Max))
                 .Sum();
 
-            result.Complexity = (float)Math.Log(Math.Pow(result.Complexity * 100f, password.Length)) / 100.0f;
+            result.Complexity = (float)Math.Log(Math.Pow(result.Complexity * 100f, Password.Length)) / 100.0f;
             result.Complexity = (result.Complexity > 1.0f) ? 1.0f : result.Complexity;
-            result.Valid = (result.Complexity > validComplexity);
+            result.Valid = (result.Complexity > ValidComplexity);
 
             return result;
         }
 
         private float AdditionalComplexity(char min, char max)
         {
-            return password.ToCharArray()
+            return Password.ToCharArray()
                 .Where(e => min <= e && e <= max)
                 .Select(_ => (max - min) / 10.0f)
                 .FirstOrDefault();
